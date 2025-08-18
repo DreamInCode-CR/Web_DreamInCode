@@ -21,11 +21,9 @@ export default function Login(){
         body: JSON.stringify({ correo, password })
       })
 
-      // Capturo el cuerpo crudo para ver errores del server
       const raw = await res.text()
       console.log('LOGIN RAW =>', res.status, raw)
 
-      // Intentamos parsear a JSON (solo si aplica)
       let data = null
       try { data = JSON.parse(raw) } catch {}
 

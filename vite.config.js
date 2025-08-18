@@ -3,13 +3,5 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5165',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '') // /api/auth -> /auth
-      }
-    }
-  }
+  base: 'https://sebas00aag.github.io/Web_DreamInCode/',
 })
