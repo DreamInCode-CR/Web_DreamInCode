@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root{ height:100%; }
+
+.bg-grid{ background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px); background-size:24px 24px; }
+
+.btn-primary{ @apply inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 font-semibold text-black transition hover:opacity-90 focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/40; }
+.btn-accent{ @apply inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 font-semibold text-black transition hover:opacity-90 focus:outline-none focus-visible:ring-4 focus-visible:ring-accent/40; }
+.input{ @apply w-full rounded-lg bg-white/90 px-4 py-2 text-gray-900 placeholder-gray-400 outline-none ring-2 ring-transparent transition focus:ring-primary; }
+.card{ @apply rounded-xl2 bg-card/90 p-6 shadow-soft; }
