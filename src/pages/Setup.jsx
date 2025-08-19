@@ -34,6 +34,7 @@ export default function Setup() {
     instrucciones: '',
     fechaInicio: '',
     fechaHasta: '',
+    horaToma: '',
     lunes: false, martes: false, miercoles: false, jueves: false, viernes: false, sabado: false, domingo: false,
     activo: true
   }
@@ -49,6 +50,11 @@ export default function Setup() {
 
   const resetMedForm = () => { setFormMed(emptyMed); setErrMed(''); setOkMed('') }
 
+  // formatea "HH:mm" -> "HH:mm:ss" para el TimeSpan del backend
+  const toTimeSpan = (hhmm) => (hhmm ? `${hhmm}:00` : null)
+  // formatea lo que viene del backend ("HH:mm:ss") a "HH:mm" para el input
+  const toHHMM = (timeStr) => (timeStr ? String(timeStr).slice(0,5) : '')
+
   const editMed = (m) => {
     setFormMed({
       medicamentoID: m.medicamentoID,
@@ -57,6 +63,7 @@ export default function Setup() {
       instrucciones: m.instrucciones ?? '',
       fechaInicio: m.fechaInicio ? String(m.fechaInicio).substring(0,10) : '',
       fechaHasta: m.fechaHasta ? String(m.fechaHasta).substring(0,10) : '',
+      horaToma: toHHMM(m.hora), // NEW
       lunes: m.lunes, martes: m.martes, miercoles: m.miercoles, jueves: m.jueves, viernes: m.viernes, sabado: m.sabado, domingo: m.domingo,
       activo: m.activo
     })
@@ -96,7 +103,7 @@ export default function Setup() {
     })()
   }, [authToken, logout])
 
-  // ---------------- Guardar perfil ----------------
+  // --------- Guardar perfil ---------
   const onSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -124,7 +131,7 @@ export default function Setup() {
     }
   }
 
-  // ---------------- Crear/Actualizar medicamento ----------------
+  // ----- Crear/Actualizar medicamento ----------------
   const submitMed = async (e) => {
     e.preventDefault()
     setErrMed(''); setOkMed('')
@@ -140,6 +147,7 @@ export default function Setup() {
       instrucciones: formMed.instrucciones || null,
       fechaInicio: formMed.fechaInicio || null,
       fechaHasta: formMed.fechaHasta || null,
+      hora: toTimeSpan(formMed.horaToma), // NEW -> el backend espera "hora"
       lunes: !!formMed.lunes, martes: !!formMed.martes, miercoles: !!formMed.miercoles,
       jueves: !!formMed.jueves, viernes: !!formMed.viernes, sabado: !!formMed.sabado, domingo: !!formMed.domingo,
       activo: !!formMed.activo
@@ -166,14 +174,13 @@ export default function Setup() {
     }
   }
 
-  // ---------------- Eliminar (borrado lógico) ----------------
+  // ---------------- Eliminar --------------
   const removeMed = async (id) => {
     if (!confirm('¿Eliminar este medicamento? (se desactiva)')) return
     try {
       if (typeof API.del === 'function') {
         await API.del(`/profiles/meds/${id}`)
       } else {
-        // fallback si tu API helper no tiene del()
         const tokenLS = localStorage.getItem('token')
         await fetch(`${API.base}/profiles/meds/${id}`, {
           method: 'DELETE',
@@ -198,6 +205,9 @@ export default function Setup() {
     </label>
   )
 
+  // helper para mostrar la hora en la lista
+  const prettyHora = (h) => (h ? toHHMM(h) : null)
+
   return (
     <section className="grid gap-6 sm:gap-8 md:grid-cols-2">
       {/* Columna izquierda: imagen */}
@@ -205,7 +215,7 @@ export default function Setup() {
         <img src="/images/auth.png" alt="AI" className="h-48 sm:h-64 md:h-full min-h-[240px] w-full object-cover" />
       </div>
 
-      {/* Columna derecha: Perfil */}
+
       <div className="card p-4 sm:p-6">
         <div className="mb-4 sm:mb-6 flex items-center gap-3">
           <div className="rounded-full bg-bg p-2">
@@ -306,7 +316,7 @@ export default function Setup() {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="label">Desde</label>
               <input
@@ -323,6 +333,16 @@ export default function Setup() {
                 className="input"
                 value={formMed.fechaHasta}
                 onChange={(e) => setFieldMed('fechaHasta', e.target.value)}
+              />
+            </div>
+            {/* NEW: Hora de toma */}
+            <div>
+              <label className="label">Hora de toma</label>
+              <input
+                type="time"
+                className="input"
+                value={formMed.horaToma}
+                onChange={(e) => setFieldMed('horaToma', e.target.value)} // "HH:mm"
               />
             </div>
           </div>
@@ -384,6 +404,7 @@ export default function Setup() {
                     {m.instrucciones ? `${m.instrucciones} · ` : ''}
                     {m.fechaInicio ? `desde ${String(m.fechaInicio).substring(0,10)}` : ''}
                     {m.fechaHasta ? ` hasta ${String(m.fechaHasta).substring(0,10)}` : ''}
+                    {prettyHora(m.hora) ? ` · ${prettyHora(m.hora)} h` : ''}
                   </div>
                   <div className="text-xs text-white/60 mt-0.5">
                     {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
