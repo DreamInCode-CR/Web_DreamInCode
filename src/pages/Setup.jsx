@@ -50,9 +50,7 @@ export default function Setup() {
 
   const resetMedForm = () => { setFormMed(emptyMed); setErrMed(''); setOkMed('') }
 
-  // formatea "HH:mm" -> "HH:mm:ss" para el TimeSpan del backend
   const toTimeSpan = (hhmm) => (hhmm ? `${hhmm}:00` : null)
-  // formatea lo que viene del backend ("HH:mm:ss") a "HH:mm" para el input
   const toHHMM = (timeStr) => (timeStr ? String(timeStr).slice(0,5) : '')
 
   const editMed = (m) => {
@@ -63,7 +61,7 @@ export default function Setup() {
       instrucciones: m.instrucciones ?? '',
       fechaInicio: m.fechaInicio ? String(m.fechaInicio).substring(0,10) : '',
       fechaHasta: m.fechaHasta ? String(m.fechaHasta).substring(0,10) : '',
-      horaToma: toHHMM(m.hora), // NEW
+      horaToma: toHHMM(m.hora ?? m.horaToma),
       lunes: m.lunes, martes: m.martes, miercoles: m.miercoles, jueves: m.jueves, viernes: m.viernes, sabado: m.sabado, domingo: m.domingo,
       activo: m.activo
     })
@@ -147,7 +145,7 @@ export default function Setup() {
       instrucciones: formMed.instrucciones || null,
       fechaInicio: formMed.fechaInicio || null,
       fechaHasta: formMed.fechaHasta || null,
-      hora: toTimeSpan(formMed.horaToma), // NEW -> el backend espera "hora"
+      hora: toTimeSpan(formMed.horaToma),
       lunes: !!formMed.lunes, martes: !!formMed.martes, miercoles: !!formMed.miercoles,
       jueves: !!formMed.jueves, viernes: !!formMed.viernes, sabado: !!formMed.sabado, domingo: !!formMed.domingo,
       activo: !!formMed.activo
@@ -205,12 +203,18 @@ export default function Setup() {
     </label>
   )
 
-  // helper, mostrar la hora en la lista
-  const HoraToma = (h) => (h ? toHHMM(h) : null)
+const prettyHora = (h) => {
+  if (!h) return null;
+  const s = String(h);
+  if (/^\d{2}:\d{2}:\d{2}$/.test(s)) return s.slice(0,5);
+  if (/^\d{2}:\d{2}$/.test(s)) return s;
+  const m = s.match(/(\d{2}):(\d{2})/);
+  return m ? `${m[1]}:${m[2]}` : null;
+};
 
   return (
     <section className="grid gap-6 sm:gap-8 md:grid-cols-2">
-      {/* Columna izquierda: imagen */}
+      {/* Columna izquierda imagen */}
       <div className="overflow-hidden rounded-xl2 shadow-soft">
         <img src="/images/auth.png" alt="AI" className="h-48 sm:h-64 md:h-full min-h-[240px] w-full object-cover" />
       </div>
@@ -342,7 +346,7 @@ export default function Setup() {
                 type="time"
                 className="input"
                 value={formMed.horaToma}
-                onChange={(e) => setFieldMed('horaToma', e.target.value)} // "HH:mm"
+                onChange={(e) => setFieldMed('horaToma', e.target.value)} //
               />
             </div>
           </div>
@@ -404,7 +408,7 @@ export default function Setup() {
                     {m.instrucciones ? `${m.instrucciones} · ` : ''}
                     {m.fechaInicio ? `desde ${String(m.fechaInicio).substring(0,10)}` : ''}
                     {m.fechaHasta ? ` hasta ${String(m.fechaHasta).substring(0,10)}` : ''}
-                    {HoraToma(m.hora) ? ` · ${HoraToma(m.hora)} h` : ''}
+                    {prettyHora(m.hora ?? m.horaToma) ? ` · ${prettyHora(m.hora ?? m.horaToma)} h` : ''}
                   </div>
                   <div className="text-xs text-white/60 mt-0.5">
                     {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
