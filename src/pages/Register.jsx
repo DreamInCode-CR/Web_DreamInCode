@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API } from '../lib/api'
 
-export default function Register(){
+export default function Register() {
   const [form, setForm] = useState({
     nombre: '', primerApellido: '', segundoApellido: '', fechaNacimiento: '',
     correo: '', telefono: '', direccion: '', password: '', password2: ''
@@ -35,19 +35,17 @@ export default function Register(){
       }
       await API.post('/auth/register', payload)
       setOk(true)
-      setTimeout(() => navigate('/Login'), 800)
+      setTimeout(() => navigate('/login'), 800)
     } catch (err) {
       setError(err.message || 'No se pudo registrar')
     } finally {
       setLoading(false)
     }
   }
-}
-
 
   return (
     <section className="grid gap-6 sm:gap-8 md:grid-cols-2">
-      <div className="overflow-hidden rounded-xl2 shadow-soft">
+      <div className="overflow-hidden rounded-2xl shadow-soft">
         <img
           src="/images/auth.png"
           alt="Registro"
@@ -118,13 +116,7 @@ export default function Register(){
             {loading ? 'Registrando…' : 'Registrar'}
           </button>
         </form>
-
-        <div className="mt-6 flex items-center justify-end gap-4 text-white/70">
-          <a href="#" aria-label="facebook" className="hover:text-white">f</a>
-          <a href="#" aria-label="twitter" className="hover:text-white">𝕏</a>
-          <a href="#" aria-label="instagram" className="hover:text-white">ig</a>
-        </div>
       </div>
     </section>
   )
-
+}
