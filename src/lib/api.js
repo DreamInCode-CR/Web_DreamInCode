@@ -1,73 +1,26 @@
-export const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:5165";
+const BASE = (import.meta.env.VITE_API_BASE || '').replace(/\/$/, '')
 
-function withBase(path) {
-  return path.startsWith("/") ? `${API_BASE}${path}` : `${API_BASE}/${path}`;
-}
-
-async function safeJson(res) {
-  const text = await res.text();
-  try { return text ? JSON.parse(text) : {}; }
-  catch { return { raw: text }; }
-}
-
-function authHeaders() {
-  const token = localStorage.getItem("token");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function handle(res) {
-  const data = await safeJson(res);
+async function req(method, path, body) {
+  const token = localStorage.getItem('token')
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    body: body ? JSON.stringify(body) : undefined
+  })
+  const data = await res.json().catch(() => ({}))
   if (!res.ok) {
-    const msg = data?.error || data?.message || `Error ${res.status}`;
-    throw new Error(msg);
+    const msg = data?.error || data?.message || `HTTP ${res.status}`
+    throw new Error(msg)
   }
-  return data;
+  return data
 }
 
 export const API = {
-  base: API_BASE,
-
-  async get(path) {
-    const res = await fetch(withBase(path), {
-      method: "GET",
-      headers: {
-        ...authHeaders()
-      }
-    });
-    return handle(res);
-  },
-
-  async post(path, body) {
-    const res = await fetch(withBase(path), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...authHeaders()
-      },
-      body: JSON.stringify(body ?? {})
-    });
-    return handle(res);
-  },
-
-  async put(path, body) {
-    const res = await fetch(withBase(path), {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...authHeaders()
-      },
-      body: JSON.stringify(body ?? {})
-    });
-    return handle(res);
-  },
-
-  async del(path) {
-    const res = await fetch(withBase(path), {
-      method: "DELETE",
-      headers: {
-        ...authHeaders()
-      }
-    });
-    return handle(res);
-  }
-};
+  get: (p) => req('GET', p),
+  post: (p, b) => req('POST', p, b),
+  put: (p, b) => req('PUT', p, b),
+  del: (p, b) => req('DELETE', p, b)
+}

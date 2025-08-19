@@ -1,43 +1,25 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const API_BASE = '/api'
+import { API } from '../lib/api'
 
 export default function Register(){
   const [form, setForm] = useState({
-    nombre: '',
-    primerApellido: '',
-    segundoApellido: '',
-    fechaNacimiento: '',   // YYYY-MM-DD
-    correo: '',
-    telefono: '',
-    direccion: '',
-    password: '',
-    password2: ''
+    nombre: '', primerApellido: '', segundoApellido: '', fechaNacimiento: '',
+    correo: '', telefono: '', direccion: '', password: '', password2: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [ok, setOk] = useState(false)
   const navigate = useNavigate()
 
-  const onChange = (e) => {
-    const { name, value } = e.target
-    setForm(prev => ({ ...prev, [name]: value }))
-  }
+  const onChange = (e) => setForm(p => ({ ...p, [e.target.name]: e.target.value }))
 
   const onSubmit = async (e) => {
     e.preventDefault()
-    setError('')
-    setOk(false)
+    setError(''); setOk(false)
 
-    if (!form.password || form.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres')
-      return
-    }
-    if (form.password !== form.password2) {
-      setError('Las contraseñas no coinciden')
-      return
-    }
+    if (!form.password || form.password.length < 6) return setError('La contraseña debe tener al menos 6 caracteres')
+    if (form.password !== form.password2) return setError('Las contraseñas no coinciden')
 
     setLoading(true)
     try {
@@ -47,33 +29,24 @@ export default function Register(){
         nombre: form.nombre || null,
         primerApellido: form.primerApellido || null,
         segundoApellido: form.segundoApellido || null,
-        fechaNacimiento: form.fechaNacimiento ? form.fechaNacimiento : null,
+        fechaNacimiento: form.fechaNacimiento || null,
         telefono: form.telefono || null,
         direccion: form.direccion || null
       }
-
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error(data?.error || `Error ${res.status}`)
-      }
-
+      await API.post('/auth/register', payload)
       setOk(true)
-      setTimeout(() => navigate('/Login'), 900)
+      setTimeout(() => navigate('/Login'), 800)
     } catch (err) {
       setError(err.message || 'No se pudo registrar')
     } finally {
       setLoading(false)
     }
   }
+}
+
 
   return (
     <section className="grid gap-6 sm:gap-8 md:grid-cols-2">
-      {/* Imagen lateral */}
       <div className="overflow-hidden rounded-xl2 shadow-soft">
         <img
           src="/images/auth.png"
