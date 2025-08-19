@@ -205,8 +205,8 @@ export default function Setup() {
     </label>
   )
 
-  // helper para mostrar la hora en la lista
-  const prettyHora = (h) => (h ? toHHMM(h) : null)
+  // helper, mostrar la hora en la lista
+  const HoraToma = (h) => (h ? toHHMM(h) : null)
 
   return (
     <section className="grid gap-6 sm:gap-8 md:grid-cols-2">
@@ -404,7 +404,7 @@ export default function Setup() {
                     {m.instrucciones ? `${m.instrucciones} · ` : ''}
                     {m.fechaInicio ? `desde ${String(m.fechaInicio).substring(0,10)}` : ''}
                     {m.fechaHasta ? ` hasta ${String(m.fechaHasta).substring(0,10)}` : ''}
-                    {prettyHora(m.hora) ? ` · ${prettyHora(m.hora)} h` : ''}
+                    {HoraToma(m.hora) ? ` · ${HoraToma(m.hora)} h` : ''}
                   </div>
                   <div className="text-xs text-white/60 mt-0.5">
                     {['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']
