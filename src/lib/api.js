@@ -24,3 +24,7 @@ export const API = {
   put: (p, b) => req('PUT', p, b),
   del: (p, b) => req('DELETE', p, b)
 }
+
+export function getRemindersNow() {
+  return api.get('/reminders/now')
+}

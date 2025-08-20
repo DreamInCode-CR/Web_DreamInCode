@@ -9,10 +9,14 @@ import Register from './Register'
 import FAQ from './FAQ'
 import Setup from './Setup'
 
+import RemindersPoller from '../features/reminders/RemindersPoller'
+
 export default function App() {
   return (
     <AuthProvider>
       <Layout>
+        <RemindersPoller />
+
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/faq" element={<FAQ />} />

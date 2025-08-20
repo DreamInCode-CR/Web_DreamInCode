@@ -115,7 +115,11 @@ export default function Setup() {
       telefono: form.telefono || null,
       direccion: form.direccion || null,
       preferencias: form.preferencias || null,
-      notasMedicas: form.notasMedicas || null
+      notasMedicas: form.notasMedicas || null,
+      horaToma: med.horaToma ? `${med.horaToma}:00` : null, // si tu API espera "HH:mm:00"
+      recordatorioHabilitado: !!med.recordatorioHabilitado,
+      minutosAntes: Number(med.minutosAntes ?? 0),
+      mensajeRecordatorio: med.mensajeRecordatorio?.trim() || null
     }
 
     try {
@@ -339,7 +343,7 @@ const prettyHora = (h) => {
                 onChange={(e) => setFieldMed('fechaHasta', e.target.value)}
               />
             </div>
-            {/* NEW: Hora de toma */}
+            {/* Hora de toma */}
             <div>
               <label className="label">Hora de toma</label>
               <input
@@ -350,6 +354,22 @@ const prettyHora = (h) => {
               />
             </div>
           </div>
+
+          <div className="form-check mt-2">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`recordatorio-${index}`}
+              checked={med.RecordatorioHabilitado || false}
+              onChange={(e) =>
+                handleMedicamentoChange(index, "recordatorioHabilitado", e.target.checked)
+              }
+            />
+            <label className="form-check-label" htmlFor={`recordatorio-${index}`}>
+              ¿Quieres activar un recordatorio para esta pastilla?
+            </label>
+          </div>
+
 
           <div>
             <label className="label block mb-2">Días de la semana</label>
