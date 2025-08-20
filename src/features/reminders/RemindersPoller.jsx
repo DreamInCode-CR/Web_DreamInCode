@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import ReminderPopup from '../../components/ReminderPopup'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
+import { getRemindersNow } from '../../lib/api'
 
 export default function RemindersPoller() {
   const { token } = useAuth()
@@ -14,8 +15,8 @@ export default function RemindersPoller() {
 
     async function tick() {
       try {
-        const res = await api.get('/reminders/now')
-        const items = Array.isArray(res?.data) ? res.data : []
+          const res = await getRemindersNow()
+          const items = Array.isArray(res) ? res : []
         if (!stopped && items.length > 0) {
           // acumulamos en cola (encaso si llegan varios a la vez)
           setQueue(q => [...q, ...items.map(r => ({

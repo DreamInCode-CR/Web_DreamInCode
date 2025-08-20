@@ -26,5 +26,5 @@ export const API = {
 }
 
 export function getRemindersNow() {
-  return api.get('/reminders/now')
+  return API.get('/reminders/now')
 }
