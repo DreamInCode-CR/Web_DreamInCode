@@ -378,24 +378,24 @@ export default function Setup() {
                 <div>
                   <label className="block text-sm mb-1">Minutos antes</label>
                   <input
-                    type="number"
-                    min={0}
-                    max={180}
-                    value={formMed.minutosAntes ?? 0}
-                    onChange={(e) => setFieldMed('minutosAntes', Number(e.target.value))}
-                    className="w-full border rounded-lg px-3 py-2"
-                    placeholder="0"
+                  type="number"
+                  min={0}
+                  max={180}
+                  value={formMed.minutosAntes ?? 0}
+                  onChange={(e) => setFieldMed('minutosAntes', Number(e.target.value))}
+                  className="input"
+                  placeholder="0"
                   />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm mb-1">Mensaje del recordatorio</label>
                   <input
-                    type="text"
-                    value={formMed.mensajeRecordatorio ?? ''}
-                    onChange={(e) => setFieldMed('mensajeRecordatorio', e.target.value)}
-                    className="w-full border rounded-lg px-3 py-2"
-                    placeholder={`Esto es un recordatorio para tomarte tu medicamento ${formMed.nombreMedicamento || ''}`}
-                    maxLength={255}
+                  type="text"
+                  value={formMed.mensajeRecordatorio ?? ''}
+                  onChange={(e) => setFieldMed('mensajeRecordatorio', e.target.value)}
+                  className="input"
+                  placeholder={`Esto es un recordatorio para tomarte tu medicamento ${formMed.nombreMedicamento || ''}`}
+                  maxLength={255}
                   />
                 </div>
               </div>
