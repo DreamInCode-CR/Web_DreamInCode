@@ -36,7 +36,12 @@ export default function Setup() {
     fechaHasta: '',
     horaToma: '',
     lunes: false, martes: false, miercoles: false, jueves: false, viernes: false, sabado: false, domingo: false,
-    activo: true
+    activo: true,
+
+    // 🔽 nuevos campos recordatorio
+    recordatorioHabilitado: false,
+    minutosAntes: 0,
+    mensajeRecordatorio: ''
   }
 
   const [meds, setMeds] = useState([])
@@ -62,8 +67,13 @@ export default function Setup() {
       fechaInicio: m.fechaInicio ? String(m.fechaInicio).substring(0,10) : '',
       fechaHasta: m.fechaHasta ? String(m.fechaHasta).substring(0,10) : '',
       horaToma: toHHMM(m.hora ?? m.horaToma),
-      lunes: m.lunes, martes: m.martes, miercoles: m.miercoles, jueves: m.jueves, viernes: m.viernes, sabado: m.sabado, domingo: m.domingo,
-      activo: m.activo
+      lunes: !!m.lunes, martes: !!m.martes, miercoles: !!m.miercoles, jueves: !!m.jueves, viernes: !!m.viernes, sabado: !!m.sabado, domingo: !!m.domingo,
+      activo: !!m.activo,
+
+      // 🔽 campos de recordatorio desde la API (con defaults por si vienen null)
+      recordatorioHabilitado: !!m.recordatorioHabilitado,
+      minutosAntes: typeof m.minutosAntes === 'number' ? m.minutosAntes : 0,
+      mensajeRecordatorio: m.mensajeRecordatorio ?? ''
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -115,11 +125,8 @@ export default function Setup() {
       telefono: form.telefono || null,
       direccion: form.direccion || null,
       preferencias: form.preferencias || null,
-      notasMedicas: form.notasMedicas || null,
-      horaToma: med.horaToma ? `${med.horaToma}:00` : null, // si tu API espera "HH:mm:00"
-      recordatorioHabilitado: !!med.recordatorioHabilitado,
-      minutosAntes: Number(med.minutosAntes ?? 0),
-      mensajeRecordatorio: med.mensajeRecordatorio?.trim() || null
+      notasMedicas: form.notasMedicas || null
+      // ❌ NO incluir campos de medicamentos aquí
     }
 
     try {
@@ -152,7 +159,12 @@ export default function Setup() {
       hora: toTimeSpan(formMed.horaToma),
       lunes: !!formMed.lunes, martes: !!formMed.martes, miercoles: !!formMed.miercoles,
       jueves: !!formMed.jueves, viernes: !!formMed.viernes, sabado: !!formMed.sabado, domingo: !!formMed.domingo,
-      activo: !!formMed.activo
+      activo: !!formMed.activo,
+
+      // 🔽 NUEVO: enviar campos de recordatorio
+      recordatorioHabilitado: !!formMed.recordatorioHabilitado,
+      minutosAntes: Number(formMed.minutosAntes ?? 0),
+      mensajeRecordatorio: formMed.mensajeRecordatorio?.trim() || null
     }
 
     try {
@@ -180,15 +192,7 @@ export default function Setup() {
   const removeMed = async (id) => {
     if (!confirm('¿Eliminar este medicamento? (se desactiva)')) return
     try {
-      if (typeof API.del === 'function') {
-        await API.del(`/profiles/meds/${id}`)
-      } else {
-        const tokenLS = localStorage.getItem('token')
-        await fetch(`${API.base}/profiles/meds/${id}`, {
-          method: 'DELETE',
-          headers: tokenLS ? { Authorization: `Bearer ${tokenLS}` } : {}
-        })
-      }
+      await API.del(`/profiles/meds/${id}`)
       setMeds(list => list.map(m => m.medicamentoID === id ? { ...m, activo: false } : m))
     } catch (e) {
       alert(String(e.message || e))
@@ -207,14 +211,16 @@ export default function Setup() {
     </label>
   )
 
-const prettyHora = (h) => {
-  if (!h) return null;
-  const s = String(h);
-  if (/^\d{2}:\d{2}:\d{2}$/.test(s)) return s.slice(0,5);
-  if (/^\d{2}:\d{2}$/.test(s)) return s;
-  const m = s.match(/(\d{2}):(\d{2})/);
-  return m ? `${m[1]}:${m[2]}` : null;
-};
+  const prettyHora = (h) => {
+    if (!h) return null
+    const s = String(h)
+    if (/^\d{2}:\d{2}:\d{2}$/.test(s)) return s.slice(0,5)
+    if (/^\d{2}:\d{2}$/.test(s)) return s
+    const m = s.match(/(\d{2}):(\d{2})/)
+    return m ? `${m[1]}:${m[2]}` : null
+  }
+
+  const checkboxId = 'recordatorio-checkbox' // id fijo para el checkbox del form
 
   return (
     <section className="grid gap-6 sm:gap-8 md:grid-cols-2">
@@ -222,7 +228,6 @@ const prettyHora = (h) => {
       <div className="overflow-hidden rounded-xl2 shadow-soft">
         <img src="/images/auth.png" alt="AI" className="h-48 sm:h-64 md:h-full min-h-[240px] w-full object-cover" />
       </div>
-
 
       <div className="card p-4 sm:p-6">
         <div className="mb-4 sm:mb-6 flex items-center gap-3">
@@ -350,26 +355,52 @@ const prettyHora = (h) => {
                 type="time"
                 className="input"
                 value={formMed.horaToma}
-                onChange={(e) => setFieldMed('horaToma', e.target.value)} //
+                onChange={(e) => setFieldMed('horaToma', e.target.value)}
               />
             </div>
           </div>
 
-          <div className="form-check mt-2">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id={`recordatorio-${index}`}
-              checked={med.RecordatorioHabilitado || false}
-              onChange={(e) =>
-                handleMedicamentoChange(index, "recordatorioHabilitado", e.target.checked)
-              }
-            />
-            <label className="form-check-label" htmlFor={`recordatorio-${index}`}>
-              ¿Quieres activar un recordatorio para esta pastilla?
+          {/* 🔔 Recordatorio */}
+          <div className="mt-2">
+            <label className="flex items-center gap-3" htmlFor={checkboxId}>
+              <input
+                id={checkboxId}
+                type="checkbox"
+                className="h-4 w-4 accent-indigo-500"
+                checked={!!formMed.recordatorioHabilitado}
+                onChange={(e) => setFieldMed('recordatorioHabilitado', e.target.checked)}
+              />
+              <span>¿Quieres activar un recordatorio para esta pastilla?</span>
             </label>
-          </div>
 
+            {formMed.recordatorioHabilitado && (
+              <div className="grid md:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label className="block text-sm mb-1">Minutos antes</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={180}
+                    value={formMed.minutosAntes ?? 0}
+                    onChange={(e) => setFieldMed('minutosAntes', Number(e.target.value))}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="0"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm mb-1">Mensaje del recordatorio</label>
+                  <input
+                    type="text"
+                    value={formMed.mensajeRecordatorio ?? ''}
+                    onChange={(e) => setFieldMed('mensajeRecordatorio', e.target.value)}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder={`Esto es un recordatorio para tomarte tu medicamento ${formMed.nombreMedicamento || ''}`}
+                    maxLength={255}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div>
             <label className="label block mb-2">Días de la semana</label>
